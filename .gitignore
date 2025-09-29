@@ -1,0 +1,14 @@
+# Dev env
+.vscode/
+.env
+.venv/
+
+# Caches
+.pytest_cache/
+__pycache__/
+
+# Build
+dist/
+
+# Runtime files
+*.rdb
