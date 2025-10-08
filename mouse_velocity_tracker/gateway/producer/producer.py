@@ -24,7 +24,9 @@ class MouseEventKafkaProducer:
         self.kafka_host = kafka_host
         self.kafka_port = kafka_port
         self.kafka_producer = AIOKafkaProducer(
-            bootstrap_servers=f"{kafka_host}:{kafka_port}", enable_idempotence=True, linger_ms=50
+            bootstrap_servers=f"{kafka_host}:{kafka_port}",
+            enable_idempotence=True,
+            linger_ms=50,
         )
 
     async def startup(self) -> None:
