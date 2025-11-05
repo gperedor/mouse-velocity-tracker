@@ -15,7 +15,6 @@ api = ClickstreamAPI(
 
 
 async def lifespan(app: FastAPI):
-    await kafka_producer.startup()
     yield
     await kafka_producer.shutdown()
 
