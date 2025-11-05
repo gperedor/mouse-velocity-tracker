@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from aiokafka import AIOKafkaProducer
-from aiokafka.errors import KafkaTimeoutError
+from confluent_kafka.experimental.aio import AIOProducer
 
 import mouse_velocity_tracker.logging
 from mouse_velocity_tracker.gateway.models import FrontendMouseEvent
@@ -18,20 +17,18 @@ class MouseEventKafkaProducer:
 
     kafka_host: str
     kafka_port: int
-    kafka_producer: AIOKafkaProducer
+    kafka_producer: AIOProducer
 
     def __init__(self, kafka_host: str, kafka_port: int) -> None:
         self.kafka_host = kafka_host
         self.kafka_port = kafka_port
-        self.kafka_producer = AIOKafkaProducer(
-            bootstrap_servers=f"{kafka_host}:{kafka_port}",
-            enable_idempotence=True,
-            linger_ms=50,
+        self.kafka_producer = AIOProducer(
+            {
+                "bootstrap.servers": f"{kafka_host}:{kafka_port}",
+                "enable.idempotence": True,
+                "linger.ms": 50,
+            }
         )
-
-    async def startup(self) -> None:
-        logger.info(f"Connecting to Broker at {self.kafka_host}:{self.kafka_port}")
-        await self.kafka_producer.start()
 
     async def shutdown(self) -> None:
         await self.kafka_producer.stop()
@@ -49,10 +46,10 @@ class MouseEventKafkaProducer:
                 )
             )
 
-            await self.kafka_producer.send(
+            await self.kafka_producer.produce(
                 topic=topic,
                 key=frontend_mouse_event.client_id.encode(),
                 value=frontend_mouse_event.model_dump_json().encode(),
             )
-        except KafkaTimeoutError as e:
-            logger.error(f"Kafka broker timeout: {e}")
+        except Exception as e:
+            logger.error(f"Error encountered, message dropped: {e}")
